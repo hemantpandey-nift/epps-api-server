@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUsertDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { IUser } from './interfaces/user.interface';
 import { User } from './schemas/user.schema';
 import { GetAllUsersDto } from './dto/get-all-user.dto';
@@ -12,16 +12,20 @@ import { WeekDayslist } from './constants/constants';
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<IUser>) {}
 
-  async createUser(createUsertDto: CreateUsertDto): Promise<IUser> {
-    const newUser = await new this.userModel(createUsertDto);
+  async createUser(createUserDto: CreateUserDto): Promise<IUser> {
+    const newUser = await new this.userModel(createUserDto);
     return newUser.save();
   }
 
   async getAllUsers(getAllUsersDto: GetAllUsersDto): Promise<IUser[]> {
     const sortBy = getAllUsersDto?.sortBy ?? 'name';
     const sortOrder = getAllUsersDto?.order === 'desc' ? -1 : 1;
-    const page: number = Number(getAllUsersDto?.page) ?? 0;
-    const limit: number = Number(getAllUsersDto?.limit) ?? 10;
+    const page: number = getAllUsersDto?.page
+      ? Number(getAllUsersDto?.page)
+      : 0;
+    const limit: number = getAllUsersDto?.limit
+      ? Number(getAllUsersDto?.limit)
+      : 10;
     const skipData: number = page * limit;
 
     const userData = await this.userModel.aggregate([
@@ -43,10 +47,9 @@ export class UserService {
             },
             { $sort: { [sortBy]: sortOrder } },
             { $project: { userMembership: { _id: 0 } } },
-            { $addFields: { totalRows: { $sum: 1 } } },
             { $skip: skipData },
             { $limit: limit },
-          ], // add projection here wish you re-shape the docs
+          ],
         },
       },
     ]);

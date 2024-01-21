@@ -13,7 +13,7 @@ import { Type } from 'class-transformer';
 import { MembershipDto } from './membership.dto';
 import { IMembership } from '../interfaces/membership.interface';
 
-export class CreateUsertDto {
+export class CreateUserDto {
   @IsString()
   @MinLength(2)
   @MaxLength(100)
